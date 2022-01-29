@@ -1,53 +1,47 @@
 import numpy as np
-import Sampler
+import Photons
 from CDFLookup2D import CDFLookup2D
-from src.CrossSectionLookup import CrossSectionLookup as csl, CrossSectionLookup
+from src.CrossSectionLookup import CrossSectionLookup
 import time
-import Calculators
 from CDFLookup import CDFLookup
 import matplotlib.pyplot as plt
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    """water_csss = csl.from_csv("lookups/scattering crossections water.csv", has_keys = True)
-    energies = np.random.random_sample(10**6) * (water_csss._end - water_csss._start) + water_csss._start
-    dist = Calculators.calc_positions(np.array([0,np.pi,np.pi/2]),np.array([1]))"""
+    cross_section_lookup = CrossSectionLookup.from_csv('lookups/scattering crossections water.csv', has_keys = True)
+    compton_look_up = CDFLookup2D.from_csv('lookups/compton angles.csv')
+    rayleigh_look_up = CDFLookup.from_csv('lookups/rayleigh angles.csv')
 
-    number = 10**4
+    photon_number = 10 ** 6
+    df = Photons.initiate_pencil_beam(0.1, photon_number)
 
-    rayleigh_angle_lookup = CDFLookup.from_csv('lookups/rayleigh angles.csv')
-    sampled_rayleigh_angles = Sampler.sample_rayleigh_angle(rayleigh_angle_lookup, number)
+    start = time.time()
+    depositions = Photons.calculate_depositions(df, cross_section_lookup, compton_look_up, rayleigh_look_up, -5, 5, 0, 25)
+    end = time.time()
 
-    compton_angle_lookup = CDFLookup2D.from_csv('lookups/compton angles.csv')
-    energies = np.array([0.099]*number)#np.random.random_sample(number) * (0.1 - 0.001) + 0.001
-    sampled_compton_angles = Sampler.sample_compton_angle(compton_angle_lookup, energies, number = number)
+    print(f"\ndone in: {(end - start) * 10 ** 6 / len(depositions)} s / million events")
+    print()
+    print(f"average y-depth: {np.mean(depositions['y_pos'])}")
+    print(f"max y-depth: {np.max(depositions['y_pos'])}")
+    print(f"stab y-depth: {np.std(depositions['y_pos'])}")
+    print(f"average x: {np.mean(depositions['x_pos'])}")
+    print(f"max x: {np.max(np.abs(depositions['x_pos']))}")
+    print(f"stab x: {np.std(depositions['x_pos'])}")
 
-    depths_lookup = CrossSectionLookup.from_csv('lookups/scattering crossections water.csv',has_keys = True)
-    total_crosssections = depths_lookup.get_all_cross_sections(energies)[-1]
+    print("\n---- FINAL DEPOSITIONS----\n")
+    print(depositions)
 
-    dist = Sampler.sample_depths(total_crosssections)
+    xs = depositions['x_pos']
+    xs.values.sort()
+    plt.figure("Transverse Distribution")
+    plt.plot(xs)
 
-    dist.sort()
-    plt.figure("interaction depths")
-    plt.plot(dist)
-
-    sampled_rayleigh_angles.sort()
-    plt.figure("rayleigh angles")
-    plt.plot(sampled_rayleigh_angles)
-
-    sampled_compton_angles.sort()
-    plt.figure("compton angles")
-    plt.plot(sampled_compton_angles)
-
-    scatter_energies = Calculators.calc_compton_scatter_energy(sampled_compton_angles, 0.5)
-    plt.figure("compton scatter energy cdf")
-    plt.plot(scatter_energies)
-
-    plt.figure("energy plot")
-    plt.plot(sampled_compton_angles, scatter_energies)
+    ys = depositions['y_pos']
+    ys.values.sort()
+    plt.figure("Longitudinal Distribution")
+    plt.plot(ys)
 
     plt.show()
-
 
 
 

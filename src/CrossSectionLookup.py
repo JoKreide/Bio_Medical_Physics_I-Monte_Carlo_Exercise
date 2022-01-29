@@ -130,7 +130,7 @@ class CrossSectionLookup:
         return bases + (indicies - intdicies) * ramps
 
     def get_all_cross_sections(self, energies: npt.NDArray[np.float]):
-        assert np.all((energies < self._energy_end) * (energies > self._energy_start)), "energies not all in bounds"
+        assert np.all((energies <= self._energy_end) * (energies >= self._energy_start)), "energies not all in bounds"
         indicies = (energies - self._energy_start) / self._energy_step
         intdicies = np.floor(indicies).astype(np.int)
         values = np.take(self.cross_sections, intdicies, axis = 2)

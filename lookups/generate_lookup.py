@@ -22,8 +22,10 @@ if __name__ == '__main__':
     F = rayleigh_int
     f = rayleigh_diff
 
-    points = np.arange(0,1+1/sample_points,1/sample_points)
+    points = np.arange(0,1+2/sample_points,2/sample_points)
     solutions = optimize.fsolve(lambda x: F(x) - points, points)
+    solutions = np.concatenate((solutions, 2*np.pi - np.flip(solutions)[1:]))
+    points = np.concatenate((points, points[1:] + np.max(points)))/2
 
     data_points = np.vstack((points, solutions)).T
     np.savetxt(file_path, data_points, delimiter = ',')
