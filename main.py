@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import Photons
 import Renderer
@@ -17,18 +19,20 @@ if __name__ == '__main__':
     compton_look_up = CDFLookup2D.from_csv('lookups/compton angles.csv')
     rayleigh_look_up = CDFLookup.from_csv('lookups/rayleigh angles.csv')
 
-    photon_number = 10 ** 6 #number of photons per run
+    photon_number = 10 ** 5 #number of photons per run
     iterations = 10 ** 2 #number of runs
     photon_energy = 0.05 #MeV
 
-    doses = np.array([calc_absorbed_dose(photon_number, photon_energy, cross_section_lookup, compton_look_up, rayleigh_look_up, -2.5, 2.5, 0, 10)])
+    start = time.time()
+    doses = np.array([calc_absorbed_dose(photon_number, photon_energy, cross_section_lookup, compton_look_up, rayleigh_look_up, -2.5, 2.5, 0, 10) for i in range(iterations)])
+    print(f"done in {time.time() - start: .2f}s for {photon_number * iterations} photons")
 
     print(f"Photon Energy: {photon_energy*1000:.0f} keV")
-    print(f"Total Simulated Energy:\t {photon_energy * photon_number * (1.603 * 10**-4) : .2f}nJ")
-    print(f"Average Absorbed Energy: {photon_number * np.mean(doses) * (1.603 * 10**-4) : .2f}nJ"
+    print(f"Total Simulated Energy:\t {photon_energy * photon_number * (1.603 * 10**-4) : .3f}nJ")
+    print(f"Average Absorbed Energy: {photon_number * np.mean(doses) * (1.603 * 10**-4) : .3f}nJ"
           f"\t|\t"
           f"{np.mean(doses)/photon_energy * 100 : .2f} %")
-    print(f"Run to Run Variance:\t {photon_number * np.std(doses) * (1.603 * 10**-4) : .2f}nJ"
+    print(f"Run to Run Variance:\t {photon_number * np.std(doses) * (1.603 * 10**-4) : .3f}nJ"
           f"\t|\t"
           f"{np.std(doses) / photon_energy * 100 : .2f} %")
 
