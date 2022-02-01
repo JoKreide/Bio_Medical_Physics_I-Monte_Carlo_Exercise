@@ -21,7 +21,7 @@ if __name__ == '__main__':
     iterations = 10 ** 2 #number of runs
     photon_energy = 0.05 #MeV
 
-    doses = np.array([calc_absorbed_dose(1000, photon_energy, cross_section_lookup, compton_look_up, rayleigh_look_up, -2.5, 2.5, 0, 10)])
+    doses = np.array([calc_absorbed_dose(photon_number, photon_energy, cross_section_lookup, compton_look_up, rayleigh_look_up, -2.5, 2.5, 0, 10)])
 
     print(f"Photon Energy: {photon_energy*1000:.0f} keV")
     print(f"Total Simulated Energy:\t {photon_energy * photon_number * (1.603 * 10**-4) : .2f}nJ")
@@ -32,7 +32,7 @@ if __name__ == '__main__':
           f"\t|\t"
           f"{np.std(doses) / photon_energy * 100 : .2f} %")
 
-    df = Photons.initiate_pencil_beam(photon_energy, photon_number)
+    df = Photons.initiate_pencil_beam(photon_energy, 1000)
     depositions = Photons.calculate_depositions(df, cross_section_lookup, compton_look_up, rayleigh_look_up, -2.5, 2.5, 0, 10)
 
     Renderer.draw_photon_paths((-2.5, 0), (5, 10), depositions, depositions['id'][:5], "Path of First 5 Interacting Photons", scale_points = False)
