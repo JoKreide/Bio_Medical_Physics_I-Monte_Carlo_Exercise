@@ -6,7 +6,7 @@ from CrossSectionLookup import CrossSectionLookup
 import matplotlib.pyplot as plt
 
 
-def draw_photon_paths(box_position, box_dimensions, interaction_df, indices, title=''):
+def draw_photon_paths(box_position, box_dimensions, interaction_df, indices, title='', scale_points = False):
     fig = plt.figure(title)
     water_rect = plt.Rectangle(box_position, *box_dimensions, facecolor = 'cornflowerblue')
     plt.gca().add_patch(water_rect)
@@ -15,12 +15,17 @@ def draw_photon_paths(box_position, box_dimensions, interaction_df, indices, tit
         interactions = interaction_df[interaction_df['id'] == index]
         positions = np.array([interactions['x_pos'], interactions['y_pos']]).T
         positions = np.vstack(([[0, 0]], positions))
-        scaled_energy = interactions['energy'].values
-        scaled_energy = scaled_energy.flatten()
-        scaled_energy = np.log(scaled_energy)
-        scaled_energy = scaled_energy / np.max(scaled_energy)
-        scaled_energy = scaled_energy / 20 * min(box_dimensions)
-        scaled_energy = np.insert(scaled_energy,0,0)
+
+        if scale_points:
+            scaled_energy = interactions['energy'].values
+            scaled_energy = scaled_energy.flatten()
+            scaled_energy = np.log(scaled_energy)
+            scaled_energy = scaled_energy / np.max(scaled_energy)
+            scaled_energy = scaled_energy / 20 * min(box_dimensions)
+            scaled_energy = np.insert(scaled_energy,0,0)
+        else:
+            scaled_energy = [1 / 40 * min(box_dimensions)] * (len(positions)-1)
+        scaled_energy = np.insert(scaled_energy, 0, 0)
 
         for pos, energy in zip(positions, scaled_energy):
             circle = plt.Circle(pos, radius = energy, fc = 'r')
