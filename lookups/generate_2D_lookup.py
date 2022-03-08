@@ -22,10 +22,10 @@ def inv_cdf(cdf, ps, thetas):
 
 
 if __name__ == '__main__':
-    e_points = 250
+    e_points = 2
     theta_points = 5000
     p_count = 1000
-    plotting = False
+    plotting = True
     file_path = "compton angles.csv"
     function = klein_nishina
 
@@ -52,12 +52,17 @@ if __name__ == '__main__':
     np.savetxt(file_path, tot.T, delimiter = ',')
 
     if (plotting):
-        plt.figure("PDFs")
-        plt.plot(thetas, pdf.T)
+        #plt.figure("PDFs")
+        #plt.plot(thetas, pdf.T)
         plt.figure("Polar PDFs")
-        plt.polar(thetas - np.min(thetas), pdf.T)
-        plt.figure("CDFs")
-        plt.plot(thetas, cdfs.T)
-        plt.figure("inverse CDFs")
-        plt.plot(ps, inv_cdfs.T)
+        plot_theta = thetas
+        print(plot_theta)
+        plt.polar(plot_theta - np.min(plot_theta), pdf.T)
+        plt.title("Angle Dependence of Compton Scattering")
+        plt.xlabel("scatter angle")
+        plt.ylabel("relative cross-section")
+        #plt.figure("CDFs")
+        #plt.plot(thetas, cdfs.T)
+        #plt.figure("inverse CDFs")
+        #plt.plot(ps, inv_cdfs.T)
         plt.show()

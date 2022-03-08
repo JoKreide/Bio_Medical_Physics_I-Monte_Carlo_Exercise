@@ -58,6 +58,33 @@ def sample_angle(energies, types, compton_look_up : CDFLookup2D, rayleigh_look_u
     rayleigh_angles = sample_rayleigh_angle(rayleigh_look_up, len(energies))
     return is_rayleigh * rayleigh_angles + is_compton * compton_angles
 
+def sample_absorption_2(energies, types, angles):
+    """
+    this turned out to be about 10% slower in my testing. A better way to do the array juggling (maybe using a dataframe?)
+    probably makes it faster than the other method
+    :param energies:
+    :param types:
+    :param angles:
+    :return:
+    """
+    is_rayleigh = types == 0
+    is_compton = types == 1
+    is_photo = types == 2
+
+    compton_energies = energies[is_compton] - Calculators.calc_compton_scatter_energy(angles[is_compton], energies[is_compton])
+    rayleigh_energies = 0 * energies[is_rayleigh]
+    photo_energies = 1 * energies[is_photo]
+
+    ran = np.arange(len(energies))
+    ind_ray = ran[np.invert(is_rayleigh)]
+    ind_comp = ran[np.invert(is_compton)]
+    ind_photo = ran[np.invert(is_photo)]
+
+    rayleigh_energies = np.insert(rayleigh_energies, ind_ray - np.arange(len(ind_ray)), 0)
+    compton_energies = np.insert(compton_energies, ind_comp - np.arange(len(ind_comp)), 0)
+    photo_energies = np.insert(photo_energies, ind_photo - np.arange(len(ind_photo)), 0)
+
+    return rayleigh_energies + compton_energies + photo_energies
 
 def sample_absorption(energies, types, angles):
     is_compton = types == 1
