@@ -1,10 +1,6 @@
-import time
 from itertools import repeat
-
 import numpy as np
 import pandas as pd
-import dask.dataframe as dd
-
 import Calculators
 import Sampler
 from CDFLookup import CDFLookup
@@ -13,7 +9,7 @@ from CrossSectionLookup import CrossSectionLookup
 from concurrent.futures import ProcessPoolExecutor
 
 
-def initiate_pencil_beam(energy, photon_number, start_x_pos = 0, start_y_pos = 0, start_angle=0):
+def initiate_pencil_beam(energy, photon_number, start_x_pos = 0, start_y_pos = 0, start_angle=0, start_index = 0):
     """
     Creates a pandas data frame with the columns energies, angles, x_pos and y_pos.
     :param energy: energy of the photons
@@ -27,7 +23,7 @@ def initiate_pencil_beam(energy, photon_number, start_x_pos = 0, start_y_pos = 0
     angles = np.array([start_angle] * photon_number, dtype = float)
     x_positions = np.array(start_x_pos * photon_number, dtype = float)
     y_positions = np.array(start_y_pos * photon_number, dtype = float)
-    photon_id = np.arange(photon_number)
+    photon_id = np.arange(photon_number) + start_index
     d = {'id': photon_id, 'energies': energies, 'angles': angles, 'x_pos': x_positions, 'y_pos': y_positions}
     return pd.DataFrame(data=d)
 
@@ -82,9 +78,10 @@ def update_depositions(interactions, x_min, x_max, y_min, y_max, depositions = N
     else:
         return pd.concat([depositions, new_df], ignore_index = True).reset_index(drop = True)
 
-def _calc_dep(photon_energy, photon_number, cross_section_lookup, compton_look_up, rayleigh_look_up, x_min, x_max, y_min, y_max):
+def _calc_dep(photon_energy, photon_number, cross_section_lookup, compton_look_up, rayleigh_look_up,
+              x_min, x_max, y_min, y_max, start_index):
     depositions = None
-    photon_df = initiate_pencil_beam(photon_energy, photon_number)
+    photon_df = initiate_pencil_beam(photon_energy, photon_number, start_index=start_index)
 
     while len(photon_df) > 0:
         interactions = next_interactions(photon_df, cross_section_lookup, compton_look_up, rayleigh_look_up)
@@ -94,10 +91,14 @@ def _calc_dep(photon_energy, photon_number, cross_section_lookup, compton_look_u
     del photon_df
     return depositions
 
-def calculate_depositions(photon_energy, photon_number, cross_section_lookup, compton_look_up, rayleigh_look_up, x_min, x_max, y_min, y_max, chunks = 100):
+def calculate_depositions(photon_energy, photon_number,
+                          cross_section_lookup, compton_look_up, rayleigh_look_up,
+                          x_min, x_max, y_min, y_max, chunks = 10, start_index=0):
+
     with ProcessPoolExecutor() as executor:
         results = executor.map(_calc_dep, repeat(photon_energy), [int(photon_number/chunks)]*chunks,
                                repeat(cross_section_lookup), repeat(compton_look_up), repeat(rayleigh_look_up),
-                               repeat(x_min), repeat(x_max), repeat(y_min), repeat(y_max))
+                               repeat(x_min), repeat(x_max), repeat(y_min), repeat(y_max),
+                               np.arange(chunks)*int(photon_number/chunks) + start_index)
 
     return pd.concat(results)

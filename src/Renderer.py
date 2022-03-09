@@ -63,7 +63,7 @@ def calc_pixels(box_position, box_dimensions, interaction_df, res=10, log=True):
     return pixels
 
 
-def draw_deposition_image(box_position, box_dimensions, interaction_df, res=10, title='', log=True, chunks=100):
+def draw_deposition_image(box_position, box_dimensions, interaction_df, res=10, title='', log=True, chunks=25):
     chunk_size = int(len(interaction_df) / chunks)
     df_chunks = [interaction_df[i * chunk_size : min((i + 1) * chunk_size, len(interaction_df))] for i in range(chunks)]
 
